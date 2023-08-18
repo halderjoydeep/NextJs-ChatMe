@@ -1,6 +1,6 @@
 import LoginButton from "./LoginButton";
 
-const page: React.FC = () => {
+const page: React.FC = async () => {
   return (
     <main className="mx-auto w-full max-w-md px-4 py-12">
       <div className="text-center">Logo</div>

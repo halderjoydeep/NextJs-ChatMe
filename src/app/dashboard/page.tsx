@@ -1,4 +1,4 @@
-const page: React.FC = () => {
+const page: React.FC = async () => {
   return <div>Dashboard Page</div>;
 };
 

@@ -1,4 +1,4 @@
-import { LucideProps } from "lucide-react";
+import { LogOut, LucideProps, UserPlus } from "lucide-react";
 
 export const Icons = {
   Logo: (props: LucideProps) => (
@@ -39,4 +39,6 @@ export const Icons = {
       <path d="M1 1h22v22H1z" fill="none" />
     </svg>
   ),
+  UserPlus: UserPlus,
+  LogOut: LogOut,
 };
