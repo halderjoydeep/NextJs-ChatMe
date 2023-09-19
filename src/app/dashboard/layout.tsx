@@ -1,6 +1,9 @@
 import FriendRequestSidebarOption from "@/components/FriendRequestSidebarOption";
 import { Icons } from "@/components/Icons";
+import MobileChatLayout from "@/components/MobileLayout";
+import SidebarChatList from "@/components/SidebarChatList";
 import SignOutButton from "@/components/SignOutButton";
+import { getFriendsByUserId } from "@/helpers/get-friends-by-user-id";
 import { fetchRedis } from "@/helpers/redis";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
@@ -16,6 +19,7 @@ const Layout: React.FC<LayoutProps> = async ({ children }) => {
   const session = await getServerSession(authOptions);
 
   if (!session) notFound();
+
   const unseenRequestCount = (
     (await fetchRedis(
       "smembers",
@@ -23,17 +27,34 @@ const Layout: React.FC<LayoutProps> = async ({ children }) => {
     )) as string[]
   ).length;
 
+  const friends = await getFriendsByUserId(session.user.id);
+
   return (
     <main className="flex h-screen w-full">
-      <aside className="flex w-full max-w-sm flex-col gap-y-5 bg-purple-600 px-6 py-8">
+      <div className="md:hidden">
+        <MobileChatLayout
+          session={session}
+          friends={friends}
+          unseenRequestCount={unseenRequestCount}
+        />
+      </div>
+
+      <aside className=" hidden w-full max-w-sm flex-col gap-y-5 bg-purple-600 px-6 py-8 md:flex">
         <Link href="/dashboard" className="self-start">
           <Icons.Logo className="h-8 text-white" />
         </Link>
 
-        <div className="mt-5 text-xs font-semibold text-white">Your chats</div>
+        <nav className="mt-5 flex-1">
+          <ul role="list" className="flex h-full flex-col gap-y-7">
+            {/* Chats */}
 
-        <nav className="flex-1">
-          <ul role="list" className="gay-y-7 flex h-full flex-col">
+            <li>
+              <SidebarChatList
+                initialFriends={friends}
+                sessionId={session.user.id}
+              />
+            </li>
+
             {/* Overview */}
             <li>
               <div className="text-xs font-semibold text-white">Overview</div>
@@ -88,7 +109,9 @@ const Layout: React.FC<LayoutProps> = async ({ children }) => {
           </ul>
         </nav>
       </aside>
-      <section className="w-full bg-purple-200 py-12">{children}</section>
+      <section className="max-h-screen w-full bg-purple-200 pt-12 md:pt-0">
+        {children}
+      </section>
     </main>
   );
 };

@@ -1,6 +1,8 @@
 import { fetchRedis } from "@/helpers/redis";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { pusherServer } from "@/lib/pusher";
+import { toPusherChannel } from "@/lib/utils";
 import { addFriendValidator } from "@/lib/validations";
 import { getServerSession } from "next-auth";
 import { ZodError } from "zod";
@@ -52,6 +54,12 @@ export async function POST(req: Request) {
     }
 
     await db.sadd(`user:${idToAdd}:requests`, session.user.id);
+
+    await pusherServer.trigger(
+      toPusherChannel(`user:${idToAdd}:requests`),
+      "requests",
+      { id: session.user.id, email: session.user.email },
+    );
 
     return new Response("Ok");
   } catch (error) {

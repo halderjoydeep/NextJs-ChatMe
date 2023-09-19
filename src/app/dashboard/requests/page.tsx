@@ -1,13 +1,11 @@
 import FriendRequests from "@/components/FriendRequests";
 import { fetchRedis } from "@/helpers/redis";
 import { authOptions } from "@/lib/auth";
-import { User, getServerSession } from "next-auth";
+import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 
 const page: React.FC = async () => {
   const session = await getServerSession(authOptions);
-
-  console.log("request is called");
 
   if (!session) notFound();
 
@@ -29,8 +27,8 @@ const page: React.FC = async () => {
   );
 
   return (
-    <div className="pt-8">
-      <h1 className="mb-8 text-5xl font-bold">Friend Requests</h1>
+    <div className="px-8 pt-8">
+      <h1 className="mb-8 text-3xl font-bold md:text-5xl">Friend Requests</h1>
 
       <FriendRequests
         initialRequests={incomingRequests}

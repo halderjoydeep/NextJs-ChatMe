@@ -1,6 +1,8 @@
 import { fetchRedis } from "@/helpers/redis";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { pusherServer } from "@/lib/pusher";
+import { toPusherChannel } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { ZodError, z } from "zod";
 
@@ -34,9 +36,25 @@ export async function POST(req: Request) {
       return new Response("No friend request", { status: 400 });
     }
 
-    await db.sadd(`user:${session.user.id}:friends`, idToAdd);
-    await db.sadd(`user:${idToAdd}:friends`, session.user.id);
-    await db.srem(`user:${session.user.id}:requests`, idToAdd);
+    const friendRaw = (await fetchRedis("get", `user:${idToAdd}`)) as string;
+
+    const friend = JSON.parse(friendRaw);
+
+    await Promise.all([
+      pusherServer.trigger(
+        toPusherChannel(`user:${session.user.id}:friends`),
+        "new-friend",
+        friend,
+      ),
+      pusherServer.trigger(
+        toPusherChannel(`user:${idToAdd}:friends`),
+        "new-friend",
+        session.user,
+      ),
+      db.sadd(`user:${session.user.id}:friends`, idToAdd),
+      db.sadd(`user:${idToAdd}:friends`, session.user.id),
+      db.srem(`user:${session.user.id}:requests`, idToAdd),
+    ]);
 
     return new Response("OK");
   } catch (error) {

@@ -1,9 +1,11 @@
 "use client";
 
+import { pusherClient } from "@/lib/pusher";
+import { toPusherChannel } from "@/lib/utils";
 import axios from "axios";
 import { Check, UserPlus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface FriendRequestsProps {
   initialRequests: IncomingRequest[];
@@ -30,6 +32,20 @@ const FriendRequests: React.FC<FriendRequestsProps> = ({
     router.refresh();
   }
 
+  useEffect(() => {
+    function friendRequestHandler(newRequest: IncomingRequest) {
+      setIncomingRequests((prev) => [...prev, newRequest]);
+    }
+
+    pusherClient.subscribe(toPusherChannel(`user:${sessionId}:requests`));
+    pusherClient.bind("requests", friendRequestHandler);
+
+    return () => {
+      pusherClient.unsubscribe(toPusherChannel(`user:${sessionId}:requests`));
+      pusherClient.unbind("requests", friendRequestHandler);
+    };
+  }, [sessionId]);
+
   return (
     <div className="flex flex-col gap-4">
       {incomingRequests.length === 0 ? (
@@ -38,11 +54,11 @@ const FriendRequests: React.FC<FriendRequestsProps> = ({
         incomingRequests.map((request) => (
           <div key={request.id} className="flex items-center gap-4">
             <UserPlus />
-            <p className="text-lg font-medium">{request.email}</p>
+            <p className=" text-xs font-medium md:text-lg">{request.email}</p>
             <button
               onClick={() => acceptFriend(request.id)}
               aria-label="accept friend request"
-              className="grid h-8 w-8 place-items-center rounded-full bg-lime-600 transition hover:bg-lime-700 hover:shadow-md"
+              className="grid h-6 w-6 place-items-center rounded-full bg-lime-600 transition hover:bg-lime-700 hover:shadow-md md:h-8 md:w-8"
             >
               <Check className="h-3/4 w-3/4 font-medium text-white" />
             </button>
@@ -50,7 +66,7 @@ const FriendRequests: React.FC<FriendRequestsProps> = ({
             <button
               onClick={() => rejectFriend(request.id)}
               aria-label="reject friend request"
-              className="grid h-8 w-8 place-items-center rounded-full bg-red-600 transition hover:bg-red-700 hover:shadow-md"
+              className="grid h-6 w-6 place-items-center rounded-full bg-red-600 transition hover:bg-red-700 hover:shadow-md md:h-8 md:w-8"
             >
               <X className="h-3/4 w-3/4 font-medium text-white" />
             </button>

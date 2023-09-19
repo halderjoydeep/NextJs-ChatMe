@@ -12,8 +12,7 @@ const LoginButton: React.FC = () => {
   const loginWithGoogle = async () => {
     setIsLoading(true);
     try {
-      const res = await signIn("google");
-      console.log(res);
+      await signIn("google");
     } catch (error) {
       toast.error("Something went wrong");
     } finally {

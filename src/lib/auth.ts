@@ -1,5 +1,5 @@
 import { UpstashRedisAdapter } from "@next-auth/upstash-redis-adapter";
-import { NextAuthOptions, User } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { db } from "./db";
 
